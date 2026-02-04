@@ -40,4 +40,9 @@ pipeline {
     options{
         timestamps()
     }
+    post{
+        always{
+            junit 'test-results/junit.xml'
+        }
+    }
 }
