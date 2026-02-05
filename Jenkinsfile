@@ -47,8 +47,7 @@ pipeline {
                 echo "E2E stage"
                 sh '''
                 # 1. Install 'serve' locally so we are sure it exists in this container
-                npm install serve &
-                node_modules/.bin/serve -s build -l 3000
+                npx serve -s build -l 3000 &
                 npx wait-on http://localhost:3000 --timeout 30000
                 npx playwright test
                 '''   
