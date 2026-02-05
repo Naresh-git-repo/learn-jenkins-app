@@ -46,9 +46,17 @@ pipeline {
             steps{
                 echo "E2E stage"
                 sh '''
-                # 1. Install 'serve' locally so we are sure it exists in this container
-                npx serve -s build -l 3000 &
-                npx wait-on http://localhost:3000 --timeout 30000
+                # 1. Start the app in the background
+                npx --yes serve -s build -l 3000 &
+    
+                # 2. Wait for the server to be alive
+                npx --yes wait-on http://localhost:3000 --timeout 60000
+    
+                # 3. THE MISSING LINK: Tell Playwright to download its own browser
+                # This fixes the "Executable doesn't exist" error
+                npx playwright install chromium --with-deps
+    
+                # 4. Now run the tests
                 npx playwright test
                 '''   
             }
