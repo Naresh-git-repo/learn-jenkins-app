@@ -39,7 +39,7 @@ pipeline {
 
                     steps {
                         sh '''
-                            #test -f build/index.html
+                            test -f build/index.html
                             npm test
                         '''
                     }
@@ -85,7 +85,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    npm install netlify-cli
+                    npm install netlify-cli@20.1.1
                     node_modules/.bin/netlify --version
                     echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
@@ -103,7 +103,7 @@ pipeline {
             }
 
             environment {
-                CI_ENVIRONMENT_URL = 'PUT YOUR NETLIFY SITE URL HERE'
+                CI_ENVIRONMENT_URL = 'https://delightful-strudel-124bda.netlify.app'
             }
 
             steps {
