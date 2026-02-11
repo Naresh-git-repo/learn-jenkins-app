@@ -77,7 +77,7 @@ pipeline {
                                 reportDir: 'playwright-report',
                                 reportFiles: 'index.html',
                                 reportName: 'Local E2E HTML Report',
-                                useWrapperFileDirectly: true
+                                useWrapperFileDirectly: false
                             ])
                         }
                     }
@@ -128,7 +128,7 @@ pipeline {
                         reportDir: 'playwright-report',
                         reportFiles: 'index.html',
                         reportName: 'Production E2E HTML Report',
-                        useWrapperFileDirectly: true
+                        useWrapperFileDirectly: false
                     ])
                 }
             }
