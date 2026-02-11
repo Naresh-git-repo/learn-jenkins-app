@@ -1,8 +1,13 @@
 pipeline {
     agent any
-    environment{
-        NETLIFY_SITE_ID = '5f16d504-fa91-45f9-ac64-6eb95c95c357'
+
+    environment {
+        NETLIFY_SITE_ID   = '5f16d504-fa91-45f9-ac64-6eb95c95c357'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+    }
+
+    options {
+        timestamps()
     }
 
     stages {
@@ -16,7 +21,6 @@ pipeline {
             }
             steps {
                 sh '''
-                echo "Small change..."
                 echo "Build stage..."
                 ls -la
                 npm --version
@@ -24,7 +28,6 @@ pipeline {
                 npm ci
                 npm run build
                 ls -la
-                
                 '''
             }
         }
@@ -32,7 +35,7 @@ pipeline {
         stage('Tests') {
             parallel {
 
-                stage('Test') {
+                stage('Unit Tests') {
                     agent {
                         docker {
                             image 'node:18-alpine'
@@ -40,7 +43,7 @@ pipeline {
                         }
                     }
                     steps {
-                        echo "Test stage"
+                        echo "Unit Test stage"
                         sh '''
                         test -f build/index.html
                         npm test
@@ -48,7 +51,7 @@ pipeline {
                     }
                 }
 
-                stage('E2E') {
+                stage('Local E2E Tests') {
                     agent {
                         docker {
                             image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -56,7 +59,7 @@ pipeline {
                         }
                     }
                     steps {
-                        echo "E2E stage"
+                        echo "Local E2E stage"
                         sh '''
                         npm install serve
                         node_modules/.bin/serve -s build &
@@ -64,6 +67,19 @@ pipeline {
                         npx playwright test --reporter=line,html
                         ls -l playwright-report
                         '''
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: false,
+                                keepAll: false,
+                                reportDir: 'playwright-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Local E2E HTML Report',
+                                useWrapperFileDirectly: true
+                            ])
+                        }
                     }
                 }
             }
@@ -80,32 +96,48 @@ pipeline {
                 sh '''
                 npm install netlify-cli@20.1.1
                 node_modules/.bin/netlify --version
-                echo "Deploying to Production Site ID: $NETLIFY_SITE-ID"
-                node_modules/.bin/netlify status
+                echo "Deploying to Production Site ID: $NETLIFY_SITE_ID"
                 node_modules/.bin/netlify deploy --dir=build --prod
                 '''
             }
         }
-    }
 
-    options {
-        timestamps()
+        stage('Production E2E Tests') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
+            }
+            environment {
+                CI_ENVIRONMENT_URL = 'https://delightful-strudel-124bda.netlify.app'
+            }
+            steps {
+                echo "Production E2E stage"
+                sh '''
+                npx playwright test --reporter=line,html
+                ls -l playwright-report
+                '''
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: false,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Production E2E HTML Report',
+                        useWrapperFileDirectly: true
+                    ])
+                }
+            }
+        }
     }
 
     post {
         always {
             junit 'jest-results/junit.xml'
-            publishHTML([
-                allowMissing: false,
-                alwaysLinkToLastBuild: false,
-                icon: '',
-                keepAll: false,
-                reportDir: 'playwright-report',
-                reportFiles: 'index.html',
-                reportName: 'HTML Report',
-                reportTitles: '',
-                useWrapperFileDirectly: true
-            ])
         }
     }
 }
