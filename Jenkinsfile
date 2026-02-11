@@ -16,6 +16,7 @@ pipeline {
             }
             steps {
                 sh '''
+                echo "Small change..."
                 echo "Build stage..."
                 ls -la
                 npm --version
@@ -23,6 +24,7 @@ pipeline {
                 npm ci
                 npm run build
                 ls -la
+                
                 '''
             }
         }
