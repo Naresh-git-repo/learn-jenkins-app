@@ -101,8 +101,8 @@ pipeline {
                     netlify --version
                     echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
                     netlify status
-                    node_modules/.bin/netlify deploy --dir=build --json > Deploy-output.txt
-                    CI_ENVIRONMENT_URL=$(node_modules/.bin/node-jq -r '.deploy_url' Deploy-output.txt)
+                    netlify deploy --dir=build --json > Deploy-output.txt
+                    CI_ENVIRONMENT_URL=$(node-jq -r '.deploy_url' Deploy-output.txt)
                     npx playwright test  --reporter=html
                 '''
             }
@@ -131,7 +131,7 @@ pipeline {
                     netlify --version
                     echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
                     netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod
+                    netlify deploy --dir=build --prod
                     npx playwright test  --reporter=html
                 '''
             }
